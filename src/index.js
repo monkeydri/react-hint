@@ -11,7 +11,7 @@ export default ({Component, createElement}) =>
 			position: 'top'
 		}
 
-		state = {target: null, showA: false, showB: false}
+		state = {target: null, showA: false, showB: false, hide: false}
 		_containerStyle = {position: 'relative'}
 
 		componentDidMount() {
@@ -35,6 +35,8 @@ export default ({Component, createElement}) =>
 
 		toggleHint = ({target = null} = {}) => {
 			target = this.getHint(target)
+			if (target === null) this.setState({hide: true})
+			else this.setState({hide: false})
 			clearTimeout(this._timeout)
 			this._timeout = setTimeout(() => this.setState(() =>
 				({target})), target === null
@@ -198,13 +200,13 @@ export default ({Component, createElement}) =>
 
 		render() {
 			const {className, onRenderContent} = this.props
-			const {target, content, at, top, left, showA, showB} = this.state
+			const {target, content, at, top, left, showA, showB, hide} = this.state
 			const showClassName = showA ? `${className}--show-a` : showB ? `${className}--show-b` : '';
 
 			return <div ref={(ref) => this._container = ref}
 				style={this._containerStyle}>
 					{target &&
-						<div className={`${className} ${className}--${at} ${showClassName}`}
+						<div className={`${className} ${className}--${at} ${showClassName} ${hide ? `${className}--hide` : ''}`}
 							ref={(ref) => this._hint = ref}
 							role="tooltip"
 							style={{top, left}}>
