@@ -134,7 +134,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 				args[_key] = arguments[_key];
 			}
 
-			return _ret = (_temp = (_this = _possibleConstructorReturn(this, _Component.call.apply(_Component, [this].concat(args))), _this), _this.state = { target: null }, _this._containerStyle = { position: 'relative' }, _this.toggleEvents = function (_ref2, flag) {
+			return _ret = (_temp = (_this = _possibleConstructorReturn(this, _Component.call.apply(_Component, [this].concat(args))), _this), _this.state = { target: null, showA: false, showB: false, hide: false }, _this._containerStyle = { position: 'relative' }, _this.toggleEvents = function (_ref2, flag) {
 				var events = _ref2.events,
 				    _ref2$events = _ref2.events,
 				    click = _ref2$events.click,
@@ -149,6 +149,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 				    target = _ref3$target === undefined ? null : _ref3$target;
 
 				target = _this.getHint(target);
+				if (target === null) _this.setState({ hide: true });else _this.setState({ hide: false });
 				clearTimeout(_this._timeout);
 				_this._timeout = setTimeout(function () {
 					return _this.setState(function () {
@@ -284,8 +285,27 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 			return !this.shallowEqual(state, this.state) || !this.shallowEqual(props, this.props);
 		};
 
-		ReactHint.prototype.componentDidUpdate = function componentDidUpdate() {
+		ReactHint.prototype.componentDidUpdate = function componentDidUpdate(prevProps, prevState) {
 			if (this.state.target) this.setState(this.getHintData);
+
+			// tooltip creation 
+			if (prevState.target === null && this.state.target) this.setState({ showA: true, showB: false });
+
+			// tooltip update
+			if (prevState.target && this.state.target) {
+				// skip initial state change after tooltip creation
+				if (!(!prevState.showA && !prevState.showB)) {
+					var _state = this.state,
+					    left = _state.left,
+					    top = _state.top;
+					// tooltip move
+
+					if (left != prevState.left || top != prevState.top) this.setState({ showA: !prevState.showA, showB: !prevState.showB });
+				}
+			}
+
+			// tooltip removal
+			else if (prevState.target && this.state.target === null) this.setState({ showA: false, showB: false });
 		};
 
 		ReactHint.prototype.render = function render() {
@@ -294,13 +314,17 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 			var _props = this.props,
 			    className = _props.className,
 			    onRenderContent = _props.onRenderContent;
-			var _state = this.state,
-			    target = _state.target,
-			    content = _state.content,
-			    at = _state.at,
-			    top = _state.top,
-			    left = _state.left;
+			var _state2 = this.state,
+			    target = _state2.target,
+			    content = _state2.content,
+			    at = _state2.at,
+			    top = _state2.top,
+			    left = _state2.left,
+			    showA = _state2.showA,
+			    showB = _state2.showB,
+			    hide = _state2.hide;
 
+			var showClassName = showA ? className + '--show-a' : showB ? className + '--show-b' : '';
 
 			return createElement(
 				'div',
@@ -310,7 +334,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 					style: this._containerStyle },
 				target && createElement(
 					'div',
-					{ className: className + ' ' + className + '--' + at,
+					{ className: className + ' ' + className + '--' + at + ' ' + showClassName + ' ' + (hide ? className + '--hide' : ''),
 						ref: function ref(_ref6) {
 							return _this2._hint = _ref6;
 						},
